@@ -54,27 +54,54 @@ main(int argc, char **argv)
 {
     mbus_handle *handle;
     char *host;
-    int address, retries = 0;
+    int address, retries = 0, start_address = 0, end_address = MBUS_MAX_PRIMARY_SLAVES;
     long port;
     int ret;
 
+
+    // argc:3
+    // mbus-tcp-scan host port
     if (argc == 3)
     {
         host = argv[1];
         port = atol(argv[2]);
     }
+
+    // argc:4
+    // mbus-tcp-scan -d host port
     else if (argc == 4 && strcmp(argv[1], "-d") == 0)
     {
         debug = 1;
         host = argv[2];
         port = atol(argv[3]);
     }
+
+    // argc:5
+    // mbus-tcp-scan -r retries host port
+    // mbus-tcp-scan -e end host port
     else if (argc == 5 && strcmp(argv[1], "-r") == 0)
     {
         retries = atoi(argv[2]);
         host = argv[3];
         port = atol(argv[4]);
     }
+    // mbus-tcp-scan -s start host port
+    else if (argc == 5 && strcmp(argv[1], "-s") == 0)
+    {
+        start_address = atoi(argv[2]);
+        host = argv[3];
+        port = atol(argv[4]);
+    }
+    // mbus-tcp-scan -e end host port
+    else if (argc == 5 && strcmp(argv[1], "-e") == 0)
+    {
+        end_address = atoi(argv[2]);
+        host = argv[3];
+        port = atol(argv[4]);
+    }
+
+    // argc:6
+    // mbus-tcp-scan -d -r retries host port
     else if (argc == 6 && strcmp(argv[1], "-d") == 0 && strcmp(argv[2], "-r") == 0)
     {
         debug = 1;
@@ -82,9 +109,104 @@ main(int argc, char **argv)
         host = argv[4];
         port = atol(argv[5]);
     }
+    // mbus-tcp-scan -d -s start host port
+    else if (argc == 6 && strcmp(argv[1], "-d") == 0 && strcmp(argv[2], "-s") == 0)
+    {
+        debug = 1;
+        start_address = atoi(argv[3]);
+        host = argv[4];
+        port = atol(argv[5]);
+    }
+    // mbus-tcp-scan -d -e end host port 
+    else if (argc == 6 && strcmp(argv[1], "-d") == 0 && strcmp(argv[2], "-e") == 0)
+    {
+        debug = 1;
+        end_address = atoi(argv[3]);
+        host = argv[4];
+        port = atol(argv[5]);
+    }
+    
+    // argc:7
+    // mbus-tcp-scan -r retries -s start host port
+    else if (argc == 7 && strcmp(argv[1], "-r") == 0 && strcmp(argv[3], "-s") == 0)
+    {
+        retries = atoi(argv[2]);
+        start_address = atoi(argv[4]);
+        host = argv[5];
+        port = atol(argv[6]);
+    }
+    // mbus-tcp-scan -r retries -e end host port
+    else if (argc == 7 && strcmp(argv[1], "-r") == 0 && strcmp(argv[3], "-e") == 0)
+    {
+        retries = atoi(argv[2]);
+        end_address = atoi(argv[4]);
+        host = argv[5];
+        port = atol(argv[6]);
+    }
+    // mbus-tcp-scan -s start -e end host port
+    else if (argc == 7 && strcmp(argv[1], "-s") == 0 && strcmp(argv[3], "-e") == 0)
+    {
+        start_address = atoi(argv[2]);
+        end_address = atoi(argv[4]);
+        host = argv[5];
+        port = atol(argv[6]);
+    }
+
+    // argc:8
+
+    // mbus-tcp-scan -d -r retries -s start host port
+    else if (argc == 8 && strcmp(argv[1], "-d") == 0 && strcmp(argv[2], "-r") == 0 && strcmp(argv[4], "-s") == 0)
+    {
+        debug = 1;
+        retries = atoi(argv[3]);
+        start_address = atoi(argv[5]);
+        host = argv[6];
+        port = atol(argv[7]);
+    }
+    // mbus-tcp-scan -d -r retries -e end host port
+    else if (argc == 8 && strcmp(argv[1], "-d") == 0 && strcmp(argv[2], "-r") == 0 && strcmp(argv[4], "-e") == 0)
+    {
+        debug = 1;
+        retries = atoi(argv[3]);
+        end_address = atoi(argv[5]);
+        host = argv[6];
+        port = atol(argv[7]);
+    }
+    // mbus-tcp-scan -d -s start -e end host port
+    else if (argc == 8 && strcmp(argv[1], "-d") == 0 && strcmp(argv[2], "-s") == 0 && strcmp(argv[4], "-e") == 0)
+    {
+        debug = 1;
+        start_address = atoi(argv[3]);
+        end_address = atoi(argv[5]);
+        host = argv[6];
+        port = atol(argv[7]);
+    }
+
+    // argc:9
+    // mbus-tcp-scan -r retries s start -e end host port
+    else if (argc == 9 && strcmp(argv[1], "-r") == 0 && strcmp(argv[3], "-s") == 0 && strcmp(argv[5], "-e") == 0)
+    {
+        debug = 1;
+        start_address = atoi(argv[4]);
+        end_address = atoi(argv[6]);
+        host = argv[7];
+        port = atol(argv[8]);
+    }
+    // argc:10
+    // mbus-tcp-scan -d -r retries -s start -e end host port
+    else if (argc == 10 && strcmp(argv[1], "-d") == 0 && strcmp(argv[2], "-r") == 0 && strcmp(argv[4], "-s") == 0 && strcmp(argv[6], "-e") == 0)
+    {
+        debug = 1;
+        retries = atoi(argv[3]);
+        start_address = atoi(argv[5]);
+        end_address = atoi(argv[7]);
+        host = argv[8];
+        port = atol(argv[9]);
+    }
+
     else
     {
-        fprintf(stderr,"usage: %s [-d] [-r RETRIES] host port\n", argv[0]);
+        fprintf(stderr,"usage: %s [-d] [-r RETRIES] [-s START] [-e END] host port\n", argv[0]);
         return 0;
     }
 
@@ -121,7 +243,7 @@ main(int argc, char **argv)
     if (debug)
         printf("Scanning primary addresses:\n");
 
-    for (address = 0; address <= MBUS_MAX_PRIMARY_SLAVES; address++)
+    for (address = start_address; address <= end_address; address++)
     {
         mbus_frame reply;
 
